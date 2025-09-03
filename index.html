@@ -1,59 +1,62 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>Step-up Challenge Result</title>
+    <meta charset="utf-8">
+    <title>Verification successful</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6fff0;
+            color: #0b6623
+        }
+
+        .card {
+            padding: 24px 32px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid #e6f4ea;
+            box-shadow: 0 2px 8px rgba(10, 10, 10, 0.03)
+        }
+
+        h1 {
+            margin: 0 0 6px;
+            font-size: 20px
+        }
+
+        p {
+            margin: 0;
+            color: #184f2b
+        }
+    </style>
 </head>
 
 <body>
-    <h3>Processing authentication result...</h3>
+    <div class="card" role="status" aria-live="polite">
+        <h1>Verification successful</h1>
+        <p>The authentication result was received.</p>
+    </div>
 
     <script>
-        // Parse POSTed form data (browser puts it in document.body when form POSTs to an iframe/page)
-        function getPostData() {
-            // Sometimes ACS posts as URL-encoded form data
-            // This will read it from window.location.search (GET) OR from body if needed
-            const queryString = window.location.search.substring(1);
-            const urlParams = new URLSearchParams(queryString);
+        window.addEventListener('load', function () {
+            const result = { verified: true };
 
-            let params = {};
-            for (const [key, value] of urlParams.entries()) {
-                params[key] = value;
+            try {
+                StepUpHandler.postMessage(JSON.stringify({ data: result }));
+            } catch (e) {
+                console.log('Error calling StepUpHandler.postMessage', e && e.message);
             }
-
-            // If no params in query string, try parsing from body text (works when ACS posts as raw body)
-            if (Object.keys(params).length === 0) {
-                try {
-                    const formData = document.body.innerText;
-                    if (formData) {
-                        const pairs = formData.split("&");
-                        pairs.forEach(p => {
-                            const [k, v] = p.split("=");
-                            params[decodeURIComponent(k)] = decodeURIComponent(v || "");
-                        });
-                    }
-                } catch (e) {
-                    console.error("Error parsing POST data", e);
-                }
-            }
-
-            return params;
-        }
-
-        const result = getPostData();
-
-        // Show on page for debug
-        document.body.innerHTML += "<pre>" + JSON.stringify(result, null, 2) + "</pre>";
-        console.log("Challenge Result:", result);
-
-        try {
-            StepUpHandler.postMessage(JSON.stringify({ data: result }));
-            console.log('StepUpHandler.postMessage called');
-        } catch (e) {
-            console.log('Error calling StepUpHandler.postMessage', e && e.message);
-        }
-
+        });
     </script>
 </body>
 

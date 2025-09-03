@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Step-up Challenge Result</title>
+</head>
+
+<body>
+    <h3>Processing authentication result...</h3>
+
+    <script>
+        // Parse POSTed form data (browser puts it in document.body when form POSTs to an iframe/page)
+        function getPostData() {
+            // Sometimes ACS posts as URL-encoded form data
+            // This will read it from window.location.search (GET) OR from body if needed
+            const queryString = window.location.search.substring(1);
+            const urlParams = new URLSearchParams(queryString);
+
+            let params = {};
+            for (const [key, value] of urlParams.entries()) {
+                params[key] = value;
+            }
+
+            // If no params in query string, try parsing from body text (works when ACS posts as raw body)
+            if (Object.keys(params).length === 0) {
+                try {
+                    const formData = document.body.innerText;
+                    if (formData) {
+                        const pairs = formData.split("&");
+                        pairs.forEach(p => {
+                            const [k, v] = p.split("=");
+                            params[decodeURIComponent(k)] = decodeURIComponent(v || "");
+                        });
+                    }
+                } catch (e) {
+                    console.error("Error parsing POST data", e);
+                }
+            }
+
+            return params;
+        }
+
+        const result = getPostData();
+
+        // Show on page for debug
+        document.body.innerHTML += "<pre>" + JSON.stringify(result, null, 2) + "</pre>";
+        console.log("Challenge Result:", result);
+
+        try {
+            StepUpHandler.postMessage(JSON.stringify({ data: result }));
+            console.log('StepUpHandler.postMessage called');
+        } catch (e) {
+            console.log('Error calling StepUpHandler.postMessage', e && e.message);
+        }
+
+    </script>
+</body>
+
+</html>
